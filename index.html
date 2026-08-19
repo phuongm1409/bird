@@ -266,6 +266,89 @@
     opacity:1;
   }
 
+  /* ---- Finale: blackout, confetti, danmaku, disco, gifs ---- */
+  #finale{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    background:#000;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 1s ease;
+    overflow:hidden;
+  }
+  #finale.active{
+    opacity:1;
+    pointer-events:auto;
+  }
+  #disco-layer, #gif-layer, #confetti-layer, #danmaku-layer{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    pointer-events:none;
+  }
+  #disco-layer{
+    background:conic-gradient(from 0deg, #ff004c, #ffb400, #38ff8a, #00d4ff, #7b2ff7, #ff004c);
+    mix-blend-mode:screen;
+    opacity:0.35;
+    filter:blur(30px);
+    animation:discoSpin 6s linear infinite;
+    transform-origin:center;
+  }
+  #disco-layer::after{
+    content:"";
+    position:absolute;
+    inset:-20%;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,0.28), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(255,255,255,0.22), transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(255,255,255,0.18), transparent 35%);
+    animation:discoPulse 2.6s ease-in-out infinite alternate;
+  }
+  @keyframes discoSpin{
+    from{ transform:rotate(0deg) scale(1.5); }
+    to{ transform:rotate(360deg) scale(1.5); }
+  }
+  @keyframes discoPulse{
+    from{ opacity:0.25; }
+    to{ opacity:0.75; }
+  }
+  .gif-slot{
+    position:absolute;
+    opacity:0;
+    transition:opacity 0.6s ease;
+    border-radius:14px;
+    box-shadow:0 12px 34px rgba(0,0,0,0.55);
+  }
+  .confetti-piece{
+    position:absolute;
+    top:-6vh;
+    opacity:0;
+    animation-name:confettiFall;
+    animation-timing-function:linear;
+    animation-fill-mode:forwards;
+  }
+  @keyframes confettiFall{
+    0%{ transform:translate(0,0) rotate(0deg); opacity:0; }
+    8%{ opacity:1; }
+    92%{ opacity:1; }
+    100%{ transform:translate(var(--drift), 115vh) rotate(var(--rot)); opacity:0; }
+  }
+  .danmaku-item{
+    position:absolute;
+    left:-25%;
+    white-space:nowrap;
+    font-weight:800;
+    text-shadow:0 0 10px rgba(0,0,0,0.6), 0 0 2px rgba(0,0,0,0.8);
+    animation-name:danmakuMove;
+    animation-timing-function:linear;
+    animation-fill-mode:forwards;
+  }
+  @keyframes danmakuMove{
+    0%{ transform:translateX(0); }
+    100%{ transform:translateX(150vw); }
+  }
+
   /* the flying clone of "love" that travels between slides */
   #love-flyer{
     position:fixed;
@@ -291,6 +374,20 @@
 <audio id="bgm" loop preload="auto">
   <source src="https://raw.githubusercontent.com/phuongm1409/bird/main/bgm.mp3" type="audio/mpeg">
 </audio>
+<audio id="hpbd" preload="auto">
+  <source src="https://raw.githubusercontent.com/phuongm1409/bird/main/hpbd.mp3" type="audio/mpeg">
+</audio>
+<div id="finale">
+  <div id="disco-layer"></div>
+  <div id="gif-layer">
+    <img class="gif-slot" alt="">
+    <img class="gif-slot" alt="">
+    <img class="gif-slot" alt="">
+    <img class="gif-slot" alt="">
+  </div>
+  <div id="confetti-layer"></div>
+  <div id="danmaku-layer"></div>
+</div>
 <div id="stage">
 
   <!-- SLIDE: Question 1 - Sparrow -->
@@ -583,9 +680,131 @@
         setTimeout(()=>{
           subline2.classList.add('shown');
         }, 4000);
+
+        // 5 seconds after the last text (subline2) appears, kick off the finale
+        setTimeout(startFinale, 9000);
       }, 900);
     });
   }
+
+  // ---------- Finale: blackout, confetti, danmaku, disco, gifs ----------
+  const finale = document.getElementById('finale');
+  const hpbd = document.getElementById('hpbd');
+  const gifSlots = Array.from(document.querySelectorAll('.gif-slot'));
+  const gifUrls = [1,2,3,4,5,6].map(n => `https://raw.githubusercontent.com/phuongm1409/bird/main/${n}.gif`);
+  const brightColors = ['#ff595e','#ffca3a','#8ac926','#1982c4','#6a4c93','#ff924c','#ff4dd8','#3ddc97'];
+
+  let finaleActive = false;
+  let confettiTimer = null;
+  let danmakuTimer = null;
+
+  function spawnConfetti(){
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const w = 6 + Math.random() * 6;
+    const h = w * (1.4 + Math.random() * 0.6);
+    el.style.width = w + 'px';
+    el.style.height = h + 'px';
+    el.style.left = (Math.random() * 100) + 'vw';
+    el.style.background = brightColors[Math.floor(Math.random() * brightColors.length)];
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    const duration = 4 + Math.random() * 4;
+    el.style.animationDuration = duration + 's';
+    el.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
+    el.style.setProperty('--rot', (720 + Math.random() * 720) + 'deg');
+    document.getElementById('confetti-layer').appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+
+  function spawnDanmaku(){
+    const el = document.createElement('div');
+    el.className = 'danmaku-item';
+    el.textContent = 'Happy Birthday 🎉';
+    el.style.top = (5 + Math.random() * 85) + 'vh';
+    el.style.fontSize = (20 + Math.random() * 26) + 'px';
+    el.style.color = brightColors[Math.floor(Math.random() * brightColors.length)];
+    const duration = 6 + Math.random() * 5;
+    el.style.animationDuration = duration + 's';
+    document.getElementById('danmaku-layer').appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+
+  function runGifSlot(slotEl){
+    function cycle(){
+      if(!finaleActive) return;
+      const url = gifUrls[Math.floor(Math.random() * gifUrls.length)];
+      slotEl.src = url;
+      const size = 110 + Math.random() * 90;
+      slotEl.style.width = size + 'px';
+      slotEl.style.top = (Math.random() * 65 + 5) + 'vh';
+      slotEl.style.left = (Math.random() * 70 + 5) + 'vw';
+      slotEl.style.opacity = '1';
+      const visibleDuration = 1800 + Math.random() * 1600;
+      setTimeout(() => {
+        slotEl.style.opacity = '0';
+        const hiddenDuration = 500 + Math.random() * 1600;
+        setTimeout(cycle, hiddenDuration);
+      }, visibleDuration);
+    }
+    // stagger the initial start so slots don't sync up
+    setTimeout(cycle, Math.random() * 1200);
+  }
+
+  function startFinale(){
+    finaleActive = true;
+    finale.classList.add('active');
+
+    bgm.pause();
+    hpbd.currentTime = 0;
+    hpbd.volume = 0.7;
+    hpbd.play().catch(()=>{ /* ignored if browser blocks autoplay */ });
+
+    spawnConfetti();
+    confettiTimer = setInterval(spawnConfetti, 160);
+    spawnDanmaku();
+    danmakuTimer = setInterval(spawnDanmaku, 900);
+    gifSlots.forEach(runGifSlot);
+  }
+
+  function resetToStart(){
+    finaleActive = false;
+    finale.classList.remove('active');
+
+    clearInterval(confettiTimer); confettiTimer = null;
+    clearInterval(danmakuTimer); danmakuTimer = null;
+    document.getElementById('confetti-layer').innerHTML = '';
+    document.getElementById('danmaku-layer').innerHTML = '';
+    gifSlots.forEach(el => { el.style.opacity = '0'; el.src = ''; });
+
+    hpbd.pause();
+    hpbd.currentTime = 0;
+
+    clearInterval(heartsTimer); heartsTimer = null;
+    document.getElementById('hearts').innerHTML = '';
+    document.querySelector('.bg-photo').classList.remove('active');
+
+    // reset the quiz slides so the site can be replayed
+    questions.forEach(q => {
+      const slideEl = document.getElementById(q.slideId);
+      const input = slideEl.querySelector('.guess-input');
+      const btn = slideEl.querySelector('.guess-btn');
+      const feedback = slideEl.querySelector('.feedback');
+      input.value = '';
+      input.disabled = false;
+      btn.disabled = false;
+      feedback.textContent = '';
+      feedback.className = 'feedback';
+    });
+
+    document.getElementById('reveal-text').innerHTML = '';
+    document.getElementById('final-headline').innerHTML = '';
+    document.getElementById('subline').classList.remove('shown');
+    document.getElementById('subline2').classList.remove('shown');
+
+    goToSlide('slide-q1');
+  }
+
+  hpbd.addEventListener('ended', resetToStart);
 })();
 </script>
 </body>

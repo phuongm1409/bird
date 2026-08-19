@@ -313,7 +313,6 @@
     object-fit:cover;
     border-radius:16px;
     box-shadow:0 14px 34px rgba(0,0,0,0.5);
-    border:4px solid rgba(255,255,255,0.85);
   }
   .then-now-item .label{
     margin-top:14px;
@@ -728,7 +727,7 @@
         }, 4000);
 
         // 3 seconds after the last text (subline2) appears, show the Then/Now interlude
-        setTimeout(showThenNow, 3000);
+        setTimeout(showThenNow, 4000 + 3000);
       }, 900);
     });
   }
@@ -835,26 +834,28 @@
   }
 
   function showThenNow(){
-    finale.classList.add('active'); // black screen
     const thenEl = document.getElementById('then-item');
     const nowEl = document.getElementById('now-item');
 
-    // fade in (1s)
-    requestAnimationFrame(() => {
+    // Phase 1: fade the whole screen to black first (1s)
+    finale.classList.add('active');
+
+    // Phase 2: once fully black, fade in the Then/Now images (1s)
+    setTimeout(() => {
       thenEl.classList.add('shown');
       nowEl.classList.add('shown');
-    });
+    }, 1000);
 
-    // hold for 2s after the fade-in completes, then fade out (1s)
+    // Phase 3: hold visible for 4s after the fade-in completes, then fade out (1s)
     setTimeout(() => {
       thenEl.classList.remove('shown');
       nowEl.classList.remove('shown');
-    }, 1000 + 2000);
+    }, 1000 + 1000 + 4000);
 
-    // once fully faded to black, move into the party phase (hpbd.mp3 + confetti + gifs)
+    // Phase 4: once fully faded back to black, move into the party phase (hpbd.mp3 + confetti + gifs)
     setTimeout(() => {
       startFinale();
-    }, 1000 + 2000 + 1000);
+    }, 1000 + 1000 + 4000 + 1000);
   }
 
   function resetToStart(){

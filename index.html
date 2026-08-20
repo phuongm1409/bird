@@ -312,7 +312,6 @@
     aspect-ratio:1/1;
     object-fit:cover;
     border-radius:16px;
-    box-shadow:0 14px 34px rgba(0,0,0,0.5);
   }
   .then-now-item .label{
     margin-top:14px;
@@ -325,10 +324,14 @@
   #disco-layer{
     background:conic-gradient(from 0deg, #ff004c, #ffb400, #38ff8a, #00d4ff, #7b2ff7, #ff004c);
     mix-blend-mode:screen;
-    opacity:0.35;
+    opacity:0;
     filter:blur(30px);
     animation:discoSpin 6s linear infinite;
     transform-origin:center;
+    transition:opacity 1s ease;
+  }
+  #disco-layer.active{
+    opacity:0.35;
   }
   #disco-layer::after{
     content:"";
@@ -815,6 +818,7 @@
   function startFinale(){
     finaleActive = true;
     finale.classList.add('active');
+    document.getElementById('disco-layer').classList.add('active');
 
     bgm.pause();
     hpbd.currentTime = 0;
@@ -861,6 +865,7 @@
   function resetToStart(){
     finaleActive = false;
     finale.classList.remove('active');
+    document.getElementById('disco-layer').classList.remove('active');
 
     clearInterval(confettiTimer); confettiTimer = null;
     clearInterval(danmakuTimer); danmakuTimer = null;

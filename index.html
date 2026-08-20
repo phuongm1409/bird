@@ -424,6 +424,11 @@
       <div class="label">Today, we celebrate your birthday.</div>
     </div>
   </div>
+  <div id="end-screen" class="then-now-wrap">
+    <div class="then-now-item" id="end-item">
+      <img src="https://raw.githubusercontent.com/phuongm1409/bird/main/end.png" alt="">
+    </div>
+  </div>
   <div id="disco-layer"></div>
   <div id="gif-layer">
     <img class="gif-slot" alt="">
@@ -866,6 +871,32 @@
     }, 1000 + 1000 + 4000 + 1000);
   }
 
+  function showEndScreen(){
+    // stop the party visuals so the end screen shows on a clean black background
+    finaleActive = false;
+    clearInterval(confettiTimer); confettiTimer = null;
+    clearInterval(danmakuTimer); danmakuTimer = null;
+    document.getElementById('confetti-layer').innerHTML = '';
+    document.getElementById('danmaku-layer').innerHTML = '';
+    gifSlots.forEach(el => { el.style.opacity = '0'; el.src = ''; });
+    document.getElementById('disco-layer').classList.remove('active');
+
+    const endEl = document.getElementById('end-item');
+
+    // fade in (1s)
+    requestAnimationFrame(() => endEl.classList.add('shown'));
+
+    // hold, then fade out (1s) — fade-in + hold + fade-out totals 5s
+    setTimeout(() => {
+      endEl.classList.remove('shown');
+    }, 1000 + 3000);
+
+    // once fully faded out, return to the start
+    setTimeout(() => {
+      resetToStart();
+    }, 1000 + 3000 + 1000);
+  }
+
   function resetToStart(){
     finaleActive = false;
     finale.classList.remove('active');
@@ -877,6 +908,7 @@
     document.getElementById('danmaku-layer').innerHTML = '';
     gifSlots.forEach(el => { el.style.opacity = '0'; el.src = ''; });
     document.getElementById('now-item').classList.remove('shown');
+    document.getElementById('end-item').classList.remove('shown');
 
     hpbd.pause();
     hpbd.currentTime = 0;
@@ -906,7 +938,7 @@
     goToSlide('slide-q1');
   }
 
-  hpbd.addEventListener('ended', resetToStart);
+  hpbd.addEventListener('ended', showEndScreen);
 })();
 </script>
 </body>

@@ -292,9 +292,11 @@
     inset:0;
     z-index:150;
     display:flex;
+    flex-direction:column;
     align-items:center;
     justify-content:center;
-    gap:8vw;
+    gap:22px;
+    padding:0 32px;
     pointer-events:none;
   }
   .then-now-item{
@@ -308,27 +310,27 @@
     opacity:1;
   }
   .then-now-item img{
-    width:min(38vw, 260px);
+    width:min(58vw, 320px);
     aspect-ratio:1/1;
     object-fit:cover;
     border-radius:16px;
   }
   .then-now-item .label{
-    margin-top:14px;
+    margin-top:16px;
     color:#fff;
-    font-size:1.3rem;
-    font-weight:700;
-    letter-spacing:0.04em;
-    text-transform:uppercase;
+    font-size:1.2rem;
+    font-weight:600;
+    text-align:center;
+    max-width:80vw;
   }
   #disco-layer{
     background:conic-gradient(from 0deg, #ff004c, #ffb400, #38ff8a, #00d4ff, #7b2ff7, #ff004c);
     mix-blend-mode:screen;
     opacity:0;
-    filter:blur(30px);
     animation:discoSpin 6s linear infinite;
     transform-origin:center;
     transition:opacity 1s ease;
+    will-change:transform;
   }
   #disco-layer.active{
     opacity:0.35;
@@ -417,13 +419,9 @@
 </audio>
 <div id="finale">
   <div id="then-now" class="then-now-wrap">
-    <div class="then-now-item" id="then-item">
-      <img src="https://raw.githubusercontent.com/phuongm1409/bird/main/then.jpg" alt="Then">
-      <div class="label">Then</div>
-    </div>
     <div class="then-now-item" id="now-item">
       <img src="https://raw.githubusercontent.com/phuongm1409/bird/main/now.jpg" alt="Now">
-      <div class="label">Now</div>
+      <div class="label">Today, we celebrate your birthday.</div>
     </div>
   </div>
   <div id="disco-layer"></div>
@@ -566,6 +564,9 @@
   // ---------- Floating hearts + bg music (start once bee-eaters answer is submitted) ----------
   let heartsTimer = null;
   function spawnHeart(){
+    const layer = document.getElementById('hearts');
+    if(layer.children.length >= 30) return; // hard cap to avoid runaway buildup
+
     const el = document.createElement('div');
     el.className = 'heart';
     el.textContent = '♥';
@@ -592,7 +593,7 @@
     if(heartsTimer) return;
     document.querySelector('.bg-photo').classList.add('active');
     spawnHeart();
-    heartsTimer = setInterval(spawnHeart, 380);
+    heartsTimer = setInterval(spawnHeart, 550);
     bgm.volume = 0.5;
     bgm.play().catch(()=>{ /* ignored if browser blocks autoplay */ });
   }
@@ -764,6 +765,9 @@
   let danmakuTimer = null;
 
   function spawnConfetti(){
+    const layer = document.getElementById('confetti-layer');
+    if(layer.children.length >= 40) return; // hard cap to avoid runaway buildup
+
     const el = document.createElement('div');
     el.className = 'confetti-piece';
     const w = 6 + Math.random() * 6;
@@ -777,11 +781,14 @@
     el.style.animationDuration = duration + 's';
     el.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
     el.style.setProperty('--rot', (720 + Math.random() * 720) + 'deg');
-    document.getElementById('confetti-layer').appendChild(el);
+    layer.appendChild(el);
     el.addEventListener('animationend', () => el.remove());
   }
 
   function spawnDanmaku(){
+    const layer = document.getElementById('danmaku-layer');
+    if(layer.children.length >= 12) return; // hard cap to avoid runaway buildup
+
     const el = document.createElement('div');
     el.className = 'danmaku-item';
     el.textContent = danmakuMessages[Math.floor(Math.random() * danmakuMessages.length)];
@@ -790,7 +797,7 @@
     el.style.color = brightColors[Math.floor(Math.random() * brightColors.length)];
     const duration = 6 + Math.random() * 5;
     el.style.animationDuration = duration + 's';
-    document.getElementById('danmaku-layer').appendChild(el);
+    layer.appendChild(el);
     el.addEventListener('animationend', () => el.remove());
   }
 
@@ -826,9 +833,9 @@
     hpbd.play().catch(()=>{ /* ignored if browser blocks autoplay */ });
 
     spawnConfetti();
-    confettiTimer = setInterval(spawnConfetti, 160);
+    confettiTimer = setInterval(spawnConfetti, 300);
     spawnDanmaku();
-    danmakuTimer = setInterval(spawnDanmaku, 900);
+    danmakuTimer = setInterval(spawnDanmaku, 1300);
 
     // gifs and other repo images join 5 seconds after hpbd.mp3 starts playing
     setTimeout(() => {
@@ -838,21 +845,18 @@
   }
 
   function showThenNow(){
-    const thenEl = document.getElementById('then-item');
     const nowEl = document.getElementById('now-item');
 
     // Phase 1: fade the whole screen to black first (1s)
     finale.classList.add('active');
 
-    // Phase 2: once fully black, fade in the Then/Now images (1s)
+    // Phase 2: once fully black, fade in the image (1s)
     setTimeout(() => {
-      thenEl.classList.add('shown');
       nowEl.classList.add('shown');
     }, 1000);
 
     // Phase 3: hold visible for 4s after the fade-in completes, then fade out (1s)
     setTimeout(() => {
-      thenEl.classList.remove('shown');
       nowEl.classList.remove('shown');
     }, 1000 + 1000 + 4000);
 
@@ -872,7 +876,6 @@
     document.getElementById('confetti-layer').innerHTML = '';
     document.getElementById('danmaku-layer').innerHTML = '';
     gifSlots.forEach(el => { el.style.opacity = '0'; el.src = ''; });
-    document.getElementById('then-item').classList.remove('shown');
     document.getElementById('now-item').classList.remove('shown');
 
     hpbd.pause();
